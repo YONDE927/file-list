@@ -9,41 +9,27 @@
 using std::shared_ptr, std::fstream, std::vector, std::string;
 
 namespace fique{
-    //block
-    //次のブロックオフセットを持ち、参照することができる。
+    //ブロックは自身の設定の読み書きとデータ部の読み書きができ、隣接ブロックへの参照が可能
     struct block{
         int this_offset;
-        int prev_offset;
-        int next_offset; 
         int block_size;
-        vector<char> buffer;
         shared_ptr<fstream> file_stream;
 
-        //既存ブロックからの初期化
-        block(shared_ptr<fstream> _fs, int _offset, int _block_size);
-        //新規ブロックからの初期化
-        block(shared_ptr<fstream> _fs, int _offset, int _block_size, int _prev_offset, int _next_offset);
-        shared_ptr<block> prev_block();
-        shared_ptr<block> next_block();
-        void delete_block();
+        block(shared_ptr<fstream> _file_stream, _this_offset, _block_size);
+        int get_next_offset();
+        int set_next_offset();
+        int get_prev_offset();
+        int set_prev_offset();
+        int get_data_offset();
+        int write_buffer(const void* buffer, int size);
+        int read_buffer(void* buffer, int size);
     };
-    
-    struct super_block: public block{
-        int block_num;
-        int first_empty_block_offset;
-        int first_used_block_offset;
-        int final_used_block_offset;
-
-        super_block(shared_ptr<fstream> _file_stream, int _block_size);
+    //file_queueはブロックの走査・参照・追加・削除をする。使用済みと空ブロックの管理を実行し、super_blockに保存する
+    struct file_list {
+        shared_ptr<fstream> file_stream;
+        file_list(string path, int block_size);
         shared_ptr<block> new_block();
-    };
-
-    struct used_block: public block{
-        std::unique_ptr<char> read_block();
-        int write_block(std::vector<char>& buffer);
-    };
-
-    class empty_block: public block{
+        shared_ptr<block> first_block();
     };
 }
 
