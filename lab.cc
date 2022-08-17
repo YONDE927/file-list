@@ -1,22 +1,22 @@
 #include <iostream>
 #include <fstream>
-#include <fstream>
 #include <vector>
 #include <string>
+#include <memory>
+#include <stdexcept>
+#include "block.h"
 
 using namespace std;
 
 int main(){
-    fstream s; 
-    int a{5}, b{0};
-    
+    fili::file_list list("./file.li", 32);
 
-    s.open("../sample");
+    list.reset();
 
-    s.write((const char*)(&a), sizeof(int));
-    s.seekg(0);
-    s.read((char*)(&b), sizeof(int));
-
-    cout << b << endl;
+    auto block_ptr1 = list.new_back_block();
+    auto block_ptr2 = list.new_back_block();
+    auto block_ptr3 = list.new_front_block();
+    list.delete_block(block_ptr2);
+    auto block_ptr4 = list.new_back_block();
     return 0;
 }
