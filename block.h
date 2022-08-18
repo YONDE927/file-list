@@ -74,8 +74,7 @@ namespace fili{
             void set_real_final_block_offset(int offset);
 
         public:
-            file_list(string _path);
-            file_list(string _path, int _block_size);
+            file_list(string& _path, int _block_size);
             shared_ptr<block> new_front_block();
             shared_ptr<block> new_back_block();
             shared_ptr<block> first_block();

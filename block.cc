@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <filesystem>
 #include "block.h"
 
 namespace fili{
@@ -58,27 +59,24 @@ namespace fili{
         }
     }
 
-    file_list::file_list(string _path){
+    file_list::file_list(string& _path, int _block_size){
         path = _path;
         file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::app);
-        block_size = get_int(file_stream, 0);
-        first_block_offset = get_int(file_stream, sizeof(int));
-        final_block_offset = get_int(file_stream, 0 + sizeof(int) * 2);
-        empty_block_offset = get_int(file_stream, 0 + sizeof(int) * 3);
-        real_final_block_offset = get_int(file_stream, 0 + sizeof(int) * 4);
-    }
-
-    file_list::file_list(string _path, int _block_size){
-        if(_block_size < 32){
-            throw std::runtime_error("block_size must be bigger than 32");
+        if(std::filesystem::exists(_path)){
+            first_block_offset = get_int(file_stream, sizeof(int));
+            final_block_offset = get_int(file_stream, 0 + sizeof(int) * 2);
+            empty_block_offset = get_int(file_stream, 0 + sizeof(int) * 3);
+            real_final_block_offset = get_int(file_stream, 0 + sizeof(int) * 4);
+        }else{
+            if(_block_size < 32){
+                throw std::runtime_error("block_size must be bigger than 32");
+            }
+            set_block_size(_block_size);
+            set_first_block_offset(-1);
+            set_final_block_offset(-1);
+            set_empty_block_offset(-1);
+            set_real_final_block_offset(0);
         }
-        path = _path;
-        file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::app);
-        set_block_size(_block_size);
-        set_first_block_offset(-1);
-        set_final_block_offset(-1);
-        set_empty_block_offset(-1);
-        set_real_final_block_offset(0);
     }
 
     int file_list::get_block_size(){

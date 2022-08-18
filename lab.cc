@@ -9,7 +9,8 @@
 using namespace std;
 
 int main(){
-    fili::file_list list("./file.li", 32);
+    string path = "./file.li";
+    fili::file_list list(path, 32);
 
     list.reset();
 
