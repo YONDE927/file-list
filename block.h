@@ -40,10 +40,10 @@ namespace fili{
             }
             template<class T>
             void read_buffer(T& buffer){
-                int writable_size = block_size - sizeof(int) * 2;
+                int readable_size = block_size - sizeof(int) * 2;
                 int type_size = sizeof(T);
-                if(type_size > writable_size){
-                    std::cout << "read type size is bigger than block writable size" << std::endl;
+                if(type_size > readable_size){
+                    std::cout << "read type size is bigger than block readable size" << std::endl;
                     return;
                 }
                 file_stream->seekg(this_offset + sizeof(int) * 2);
