@@ -32,6 +32,7 @@ namespace fili{
                 int writable_size = block_size - sizeof(int) * 2;
                 int type_size = sizeof(T);
                 if(type_size > writable_size){
+                    std::cout << "writing size is " << sizeof(T) << std::endl;
                     throw std::runtime_error("write type size is bigger than block writable size");
                 }
                 file_stream->seekg(this_offset + sizeof(int) * 2);
@@ -42,6 +43,7 @@ namespace fili{
                 int readable_size = block_size - sizeof(int) * 2;
                 int type_size = sizeof(T);
                 if(type_size > readable_size){
+                    std::cout << "reading size is " << sizeof(T) << std::endl;
                     throw std::runtime_error("read type size is bigger than block readable size");
                 }
                 file_stream->seekg(this_offset + sizeof(int) * 2);
