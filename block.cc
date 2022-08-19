@@ -63,6 +63,7 @@ namespace fili{
         path = _path;
         file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::app);
         if(std::filesystem::exists(_path)){
+            block_size = get_int(file_stream, 0);
             first_block_offset = get_int(file_stream, sizeof(int));
             final_block_offset = get_int(file_stream, 0 + sizeof(int) * 2);
             empty_block_offset = get_int(file_stream, 0 + sizeof(int) * 3);
