@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <memory>
 #include <iostream>
@@ -9,6 +10,8 @@
 using std::shared_ptr, std::fstream, std::vector, std::string;
 
 namespace fili{
+    void show_fili(std::string path, int byte);
+
     //ブロックは自身の設定の読み書きとデータ部の読み書きができ、隣接ブロックへの参照が可能,始祖ブロックのアクセスはできない
     //相互にオフセットを変更するので不変である自身のオフセットとブロックサイズ以外はメンバ変数に持たずに毎度読み込む。
     class block{

@@ -1,8 +1,17 @@
 #include <stdexcept>
 #include <filesystem>
 #include "block.h"
+#include "cmd-caller.h"
 
 namespace fili{
+    void show_fili(std::string path, int byte){
+        std::string cmd = "od -i -A d -w";
+        cmd.append(std::to_string(byte));
+        cmd.append(" ");
+        cmd.append(path);
+        call_cmd(cmd.c_str());
+    }
+
     int get_int(shared_ptr<fstream> file_stream, int offset){
         int value{0};
         file_stream->seekg(offset);
@@ -61,8 +70,8 @@ namespace fili{
 
     file_list::file_list(string& _path, int _block_size){
         path = _path;
-        file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::app);
         if(std::filesystem::exists(_path)){
+            file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::app);
             block_size = get_int(file_stream, 0);
             first_block_offset = get_int(file_stream, sizeof(int));
             final_block_offset = get_int(file_stream, 0 + sizeof(int) * 2);
@@ -72,6 +81,7 @@ namespace fili{
             if(_block_size < 32){
                 throw std::runtime_error("block_size must be bigger than 32");
             }
+            file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::app);
             set_block_size(_block_size);
             set_first_block_offset(-1);
             set_final_block_offset(-1);
