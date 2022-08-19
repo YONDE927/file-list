@@ -73,10 +73,6 @@ namespace fili{
         if(std::filesystem::exists(_path)){
             file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::app);
             block_size = get_int(file_stream, 0);
-            first_block_offset = get_int(file_stream, sizeof(int));
-            final_block_offset = get_int(file_stream, 0 + sizeof(int) * 2);
-            empty_block_offset = get_int(file_stream, 0 + sizeof(int) * 3);
-            real_final_block_offset = get_int(file_stream, 0 + sizeof(int) * 4);
         }else{
             if(_block_size < 32){
                 throw std::runtime_error("block_size must be bigger than 32");
@@ -101,29 +97,25 @@ namespace fili{
         return get_int(file_stream, sizeof(int));
     }
     void file_list::set_first_block_offset(int offset){
-        first_block_offset = offset;
         set_int(file_stream, 0 + sizeof(int), offset);
     }
     int file_list::get_final_block_offset(){
         return get_int(file_stream, 0 + sizeof(int) * 2);
     }
     void file_list::set_final_block_offset(int offset){
-        final_block_offset = offset;
         set_int(file_stream, 0 + sizeof(int) * 2, offset);
     }
     int file_list::get_empty_block_offset(){
         return get_int(file_stream, 0 + sizeof(int) * 3);
     }
     void file_list::set_empty_block_offset(int offset){
-        empty_block_offset = offset;
         set_int(file_stream, 0 + sizeof(int) * 3, offset);
     }
 
     int file_list::get_real_final_block_offset(){
-        return real_final_block_offset;
+        return get_int(file_stream, 0 + sizeof(int) * 4);
     }
     void file_list::set_real_final_block_offset(int offset){
-        real_final_block_offset = offset;
         set_int(file_stream, 0 + sizeof(int) * 4, offset);
     }
 
@@ -131,6 +123,7 @@ namespace fili{
         //オフセットを取得
         int new_offset{0};
         //空ブロックがあるならば
+        int empty_block_offset = get_empty_block_offset();
         if(empty_block_offset != -1){
             new_offset = empty_block_offset;
             //最初の空ブロックから次の空ブロックを取得
@@ -139,6 +132,7 @@ namespace fili{
             set_empty_block_offset(empty_block->get_next_offset());
         }else{
         //空ブロックがなければ
+            int real_final_block_offset = get_real_final_block_offset();
             new_offset = real_final_block_offset + block_size;
             //累積ブロック数に追加
             set_real_final_block_offset(real_final_block_offset + block_size);
@@ -146,6 +140,7 @@ namespace fili{
 
         //ファイル上のブロック初期化
         //prev_offset
+        int final_block_offset = get_final_block_offset();
         set_int(file_stream, new_offset, final_block_offset);
         //next_offset
         set_int(file_stream, new_offset + sizeof(int), -1);
@@ -158,6 +153,7 @@ namespace fili{
 
         //始祖ブロックの編集
         //生成したブロックが唯一ならば
+        int first_block_offset = get_first_block_offset();
         if((first_block_offset == -1) && (final_block_offset == -1)){
             set_first_block_offset(new_offset);
         }
@@ -172,6 +168,7 @@ namespace fili{
         //オフセットを取得
         int new_offset{0};
         //空ブロックがあるならば
+        int empty_block_offset = get_empty_block_offset();
         if(empty_block_offset != -1){
             new_offset = empty_block_offset;
             //最初の空ブロックから次の空ブロックを取得
@@ -180,6 +177,7 @@ namespace fili{
             set_empty_block_offset(empty_block->get_next_offset());
         }else{
         //空ブロックがなければ
+            int real_final_block_offset = get_real_final_block_offset();
             new_offset = real_final_block_offset + block_size;
             //累積ブロック数に追加
             set_real_final_block_offset(real_final_block_offset + block_size);
@@ -189,6 +187,7 @@ namespace fili{
         //prev_offset
         set_int(file_stream, new_offset, -1);
         //next_offset
+        int first_block_offset = get_first_block_offset();
         set_int(file_stream, new_offset + sizeof(int), first_block_offset);
 
         //後のブロックの編集
@@ -199,6 +198,7 @@ namespace fili{
 
         //始祖ブロックの編集
         //生成したブロックが唯一ならば
+        int final_block_offset = get_final_block_offset();
         if((first_block_offset == -1) && (final_block_offset == -1)){
             set_final_block_offset(new_offset);
         }
@@ -209,6 +209,7 @@ namespace fili{
     }
 
     shared_ptr<block> file_list::first_block(){
+        int first_block_offset = get_first_block_offset();
         if(first_block_offset == -1){
             return shared_ptr<block>(nullptr);
         }else{
@@ -217,6 +218,7 @@ namespace fili{
     }
 
     shared_ptr<block> file_list::final_block(){
+        int final_block_offset = get_final_block_offset();
         if(final_block_offset == -1){
             return shared_ptr<block>(nullptr);
         }else{
@@ -260,19 +262,22 @@ namespace fili{
             next_block->set_prev_offset(this_block->get_prev_offset());
         }
         //先頭ブロックの場合
+        int first_block_offset = get_first_block_offset();
         if(block_offset == first_block_offset){
             set_first_block_offset(this_block->get_next_offset());
         }
         //後尾ブロックの場合
+        int final_block_offset = get_final_block_offset();
         if(block_offset == final_block_offset){
             set_final_block_offset(this_block->get_prev_offset());
         }
         //真の後尾ブロックの場合、総オフセットを切り詰め
+        int real_final_block_offset = get_real_final_block_offset();
         if(block_offset == real_final_block_offset){
             set_real_final_block_offset(real_final_block_offset - block_size);
         }else if(block_offset < real_final_block_offset){
             this_block->set_prev_offset(0); 
-            this_block->set_next_offset(empty_block_offset); 
+            this_block->set_next_offset(get_empty_block_offset()); 
             set_empty_block_offset(this_block->get_this_offset());
         }
     }

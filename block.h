@@ -54,16 +54,11 @@ namespace fili{
             }
     };
     //file_queueはブロックの走査・参照・追加・削除をする。使用済みと空ブロックの管理を実行し、始祖ブロックに保存する
-    //block_offset系については高速化のための妥協である。メンバ変数だけ変えてファイルを変更しない実装のリスクがある。
     class file_list {
         private:
             string path;
             shared_ptr<fstream> file_stream;
             int block_size;
-            int first_block_offset;
-            int final_block_offset;
-            int empty_block_offset;
-            int real_final_block_offset;
 
             int get_block_size();
             void set_block_size(int size);
