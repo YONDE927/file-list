@@ -71,19 +71,28 @@ namespace fili{
     file_list::file_list(string& _path, int _block_size){
         path = _path;
         if(std::filesystem::exists(_path)){
-            file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::app);
+            file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::ate);
             block_size = get_int(file_stream, 0);
         }else{
             if(_block_size < 32){
                 throw std::runtime_error("block_size must be bigger than 32");
             }
-            file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::app);
+            file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::ate);
             set_block_size(_block_size);
             set_first_block_offset(-1);
             set_final_block_offset(-1);
             set_empty_block_offset(-1);
             set_real_final_block_offset(0);
         }
+    }
+
+    void file_list::reset(){
+        file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::trunc);
+        set_block_size(block_size);
+        set_first_block_offset(-1);
+        set_final_block_offset(-1);
+        set_empty_block_offset(-1);
+        set_real_final_block_offset(0);
     }
 
     int file_list::get_block_size(){
@@ -111,7 +120,6 @@ namespace fili{
     void file_list::set_empty_block_offset(int offset){
         set_int(file_stream, 0 + sizeof(int) * 3, offset);
     }
-
     int file_list::get_real_final_block_offset(){
         return get_int(file_stream, 0 + sizeof(int) * 4);
     }
@@ -228,15 +236,6 @@ namespace fili{
 
     void file_list::sync(){
         file_stream->flush();
-    }
-
-    void file_list::reset(){
-        file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::trunc);
-        set_block_size(block_size);
-        set_first_block_offset(-1);
-        set_final_block_offset(-1);
-        set_empty_block_offset(-1);
-        set_real_final_block_offset(0);
     }
 
     void file_list::delete_block(int block_offset){
