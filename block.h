@@ -77,6 +77,7 @@ namespace fili{
             shared_ptr<block> new_back_block();
             shared_ptr<block> first_block();
             shared_ptr<block> final_block();
+            void sync();
             void reset();
             void delete_block(int block_offset);
             void delete_block(shared_ptr<block> block_ptr);

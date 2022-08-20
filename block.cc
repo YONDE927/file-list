@@ -226,6 +226,10 @@ namespace fili{
         }
     }
 
+    void file_list::sync(){
+        file_stream->flush();
+    }
+
     void file_list::reset(){
         file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::trunc);
         set_block_size(block_size);
