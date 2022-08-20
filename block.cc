@@ -71,13 +71,17 @@ namespace fili{
     file_list::file_list(string& _path, int _block_size){
         path = _path;
         if(std::filesystem::exists(_path)){
-            file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::ate);
+            file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out);
             block_size = get_int(file_stream, 0);
         }else{
             if(_block_size < 32){
                 throw std::runtime_error("block_size must be bigger than 32");
             }
-            file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out | std::ios::ate);
+            //存在しないため、追加モードで一旦作成
+            file_stream = std::make_shared<fstream>(path, std::ios::out | std::ios::app);
+            file_stream->close();
+            //再度オープン
+            file_stream = std::make_shared<fstream>(path, std::ios::in | std::ios::out);
             set_block_size(_block_size);
             set_first_block_offset(-1);
             set_final_block_offset(-1);
